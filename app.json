@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Audio Manager Pro",
+    "slug": "audio-manager-pro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#020617"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#020617"
+      },
+      "package": "com.anonymous.audiomanagerpro"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
