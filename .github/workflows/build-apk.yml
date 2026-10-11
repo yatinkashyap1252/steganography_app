@@ -1,0 +1,77 @@
+name: Build & Release Android APK
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  build:
+    name: Build Android Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Check out repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install NPM Dependencies
+        run: npm ci
+
+      - name: ⚙️ Make Gradlew Executable
+        run: chmod +x android/gradlew
+
+      - name: 🔨 Build Release APKs
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: 📋 Organize Artifacts
+        run: |
+          mkdir -p release-apks
+          cp android/app/build/outputs/apk/release/app-arm64-v8a-release.apk release-apks/StealthStudio-v8a.apk || true
+          cp android/app/build/outputs/apk/release/app-universal-release.apk release-apks/StealthStudio-Universal.apk || true
+
+      - name: 📤 Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: StealthStudio-APKs
+          path: release-apks/*
+          retention-days: 30
+
+      - name: 🚀 Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        with:
+          tag_name: latest
+          name: Stealth Studio Latest Release
+          body: |
+            ## 🛡️ Stealth Studio - Automated Release
+            
+            Disguised dual-mode steganography & airgap mobile security enclave.
+            
+            ### 📦 Downloads:
+            - **`StealthStudio-v8a.apk`**: Recommended for all modern 64-bit Android smartphones (Fast, optimized, <20 MB).
+            - **`StealthStudio-Universal.apk`**: Compatible across all Android architectures and emulators.
+            
+            ---
+            *Built automatically via GitHub Actions CI/CD.*
+          files: release-apks/*.apk
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
